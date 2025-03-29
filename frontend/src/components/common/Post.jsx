@@ -11,12 +11,20 @@ import { Link } from "react-router-dom";
 import { useQueryClient, useMutation } from "@tanstack/react-query";
 import { toast } from "react-hot-toast";
 import LoadingSpinner from "./LoadingSpinner";
+import { formatPostDate } from "../../utils/date";
 
 const Post = ({ post }) => {	
 	const [comment, setComment] = useState("");
 
 	const queryClient = useQueryClient();
 	const authUser = queryClient.getQueryData(["authUser"]);
+	
+	const postOwner = post.user;
+	// return true if the post is liked by the user
+	const isLiked = post.likes.includes(authUser._id);
+	const isMyPost = authUser._id === postOwner._id;
+
+	const formattedDate = formatPostDate(post.createdAt);
 
 	const {mutate: deletePost, isPending: isDeleting} = useMutation({
 		mutationFn: async () => {
@@ -74,14 +82,44 @@ const Post = ({ post }) => {
 		}
 	})
 
-	const postOwner = post.user;
-	// return true if the post is liked by the user
-	const isLiked = post.likes.includes(authUser._id);
-	const isMyPost = authUser._id === postOwner._id;
+	const {mutate: commentPost, isPending: isCommenting} = useMutation({
+		mutationFn: async () => {
+			try {
+				const res = await fetch(`/api/posts/comment/${post._id}`, {
+					method: "POST",
+					headers: {
+						"Content-Type": "application/json",
+					},
+					body: JSON.stringify({text: comment}),
+				});
 
-	const formattedDate = "1h";
+				const data = await res.json();
 
-	const isCommenting = false;
+				if(!res.ok) throw new Error(data.error || "Failed to comment on post");
+
+				return data;
+				
+			} catch (error) {
+				throw new Error(error);
+			}
+		},
+		onSuccess: (updatedComments) => {
+			setComment("");
+			toast.success("Comment added successfully");
+			// update the post in the cache so that the UI is updated immediately without refetching
+			queryClient.setQueryData(["posts"], (oldData) => {
+				return oldData.map((p) => {
+					if(p._id === post._id) {
+						return {...p, comments: updatedComments};
+					}
+					return p;
+				})
+			})
+		},
+		onError: (error) => {
+			toast.error(error.message);
+		}
+	})
 
 	const handleDeletePost = () => {
 		deletePost();
@@ -89,6 +127,9 @@ const Post = ({ post }) => {
 
 	const handlePostComment = (e) => {
 		e.preventDefault();
+		// if the comment is already being posted, don't allow the user to post it again
+		if (isCommenting) return;
+		commentPost();
 	};
 
 	const handleLikePost = () => {

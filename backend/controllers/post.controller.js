@@ -84,7 +84,8 @@ export const addComment = async (req, res) => {
         // add the comment to the post
         post.comments.push(comment);
         await post.save();
-        return res.status(200).json(post);
+        const updatedComments = post.comments.filter(id => id.toString() !== userId.toString());
+        return res.status(200).json(updatedComments);
 
     } catch (error) {
         console.log("Error in addComment controller", error.message);
