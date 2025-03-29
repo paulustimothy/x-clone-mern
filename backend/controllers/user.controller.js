@@ -88,7 +88,7 @@ export const getSuggestedUsers = async (req, res) => {
         // remove password from the users for security
         suggestedUsers.forEach((user) => (user.password = null));
 
-        res.status(200).json({users: suggestedUsers});
+        res.status(200).json(suggestedUsers);
 
     } catch (error) {
         console.log("Error in getSuggestedUsers controller", error.message);
