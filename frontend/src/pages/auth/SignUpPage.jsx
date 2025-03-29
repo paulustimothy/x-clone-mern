@@ -8,20 +8,59 @@ import { FaUser } from "react-icons/fa";
 import { MdPassword } from "react-icons/md";
 import { MdDriveFileRenameOutline } from "react-icons/md";
 
-const SignUpPage = () => {
+import { useMutation } from "@tanstack/react-query";
+import { toast } from "react-hot-toast";
+
+const SignUpPage = () => {	
+
     // formData is the state that holds the form data, setFormData is the function that updates the form data
     // useState is used to create a state variable and a function to update it
 	const [formData, setFormData] = useState({
 		email: "",
 		username: "",
-		fullName: "",
+		fullname: "",
 		password: "",
+	});
+
+	// useMutation is used to handle the mutation of the form data
+	// isError is used to handle the error of the form data returns boolean
+	// isPending is used to handle the pending state of the form data 
+	// error is used to handle the error of the form data returns object
+	// mutationFn is used to handle the mutation of the form data
+	const {mutate:signupMutation, isError, isPending, error} = useMutation({
+		mutationFn: async (formData) => {
+			try {
+				// /api prefix is already added in the vite.config.js file
+				// headers is used to send the data to the server that is in json format
+				// body it to  convert the form data to json format
+				const res = await fetch("/api/auth/register",{
+					method: "POST",
+					headers: {
+						"Content-Type": "application/json",
+					},
+					body: JSON.stringify(formData),
+				});
+
+				const data = await res.json();
+				// if the response is not ok then throw an error
+				if(!res.ok) throw new Error(data.error || "Something went wrong");
+
+			} catch (error) {
+				console.log(error);
+				// throw error is used to throw the error to the mutationFn and update isError state
+				throw error;
+			}
+		},
+		onSuccess: () => {
+			toast.success("Sign up successful");
+		},
 	});
 
 	const handleSubmit = (e) => {
         // preventDefault is used to prevent the default behavior of the form which is to refresh the page when the form is submitted
 		e.preventDefault();
-		console.log(formData);
+		// formData is passed to mutate
+		signupMutation(formData);
 	};
 
 	const handleInputChange = (e) => {
@@ -33,8 +72,6 @@ const SignUpPage = () => {
         // value is the value of the input field
 		setFormData({ ...formData, [e.target.name]: e.target.value });
 	};
-
-	const isError = false;
 
 	return (
         // TODO learn all the classes
@@ -75,9 +112,9 @@ const SignUpPage = () => {
 								type='text'
 								className='grow'
 								placeholder='Full Name'
-								name='fullName'
+								name='fullname'
 								onChange={handleInputChange}
-								value={formData.fullName}
+								value={formData.fullname}
 							/>
 						</label>
 					</div>
@@ -92,8 +129,10 @@ const SignUpPage = () => {
 							value={formData.password}
 						/>
 					</label>
-					<button className='btn rounded-full btn-primary text-white'>Sign up</button>
-					{isError && <p className='text-red-500'>Something went wrong</p>}
+					<button className='btn rounded-full btn-primary text-white'>
+						{isPending ? "Signing up..." : "Sign up"}
+					</button>
+					{isError && <p className='text-red-500'>{error.message}</p>}
 				</form>
 				<div className='flex flex-col lg:w-2/3 gap-2 mt-4'>
 					<p className='text-white text-lg'>Already have an account?</p>
