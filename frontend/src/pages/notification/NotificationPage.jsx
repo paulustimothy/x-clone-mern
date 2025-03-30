@@ -1,5 +1,9 @@
 import { Link } from "react-router-dom";
+
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+
 import LoadingSpinner from "../../components/common/LoadingSpinner";
+import { toast } from "react-hot-toast";
 
 import { IoSettingsOutline } from "react-icons/io5";
 import { FaUser } from "react-icons/fa";
@@ -7,31 +11,51 @@ import { FaHeart } from "react-icons/fa6";
 
 const NotificationPage = () => {
     // TODO learn all the classes
-	const isLoading = false;
-	const notifications = [
-		{
-			_id: "1",
-			from: {
-				_id: "1",
-				username: "johndoe",
-				profileImg: "/avatars/boy2.png",
-			},
-			type: "follow",
-		},
-		{
-			_id: "2",
-			from: {
-				_id: "2",
-				username: "janedoe",
-				profileImg: "/avatars/girl1.png",
-			},
-			type: "like",
-		},
-	];
+	// use query to get data from the server
+	const queryClient = useQueryClient();
 
-	const deleteNotifications = () => {
-		alert("All notifications deleted");
-	};
+	const {data: notifications, isLoading} = useQuery({
+		queryKey: ["notifications"],
+		queryFn: async () => {
+			try {
+				const res = await fetch("/api/notifications");
+				const data = await res.json();
+				if (!res.ok) {throw new Error(data.error || "Something went wrong") }
+				return data;
+
+			} catch (error) {
+				throw new Error(error);
+			}
+		}
+	})
+
+	// use mutation to change data on the server
+	const {mutate: deleteNotifications} = useMutation({
+		mutationFn: async () => {
+			try {
+				const res = await fetch("/api/notifications", {
+					method: "DELETE",
+				});
+				const data = await res.json();
+
+				// if the server returns an error, throw an error
+				if (!res.ok) {throw new Error(data.error || "Something went wrong") }
+				return data;
+
+			} catch (error) { // network error
+				throw new Error(error);
+			}
+		},
+		onSuccess: () => {
+			toast.success("All notifications deleted");
+			// only refresh the notifications after the mutation is successful
+			queryClient.invalidateQueries({ queryKey: ["notifications"] });
+		},
+		// ui error handling or show error message to the user
+		onError: (error) => {
+			toast.error(error.message);
+		}
+	})
 
 	return (
 		<>
