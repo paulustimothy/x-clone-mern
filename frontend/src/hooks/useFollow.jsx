@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-hot-toast";
 
-const useFollow = () => {
+export const useFollow = () => {
     const queryClient = useQueryClient();
 
     const {mutate: followUnfollow, isPending} = useMutation({
@@ -34,5 +34,3 @@ const useFollow = () => {
     })
     return {followUnfollow, isPending};
 }
-
-export default useFollow;
