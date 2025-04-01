@@ -248,3 +248,20 @@ export const getUserPosts = async (req, res) => {
         return res.status(500).json({error: "Internal server error"});
     }
 }
+
+export const getUserPostCount = async (req, res) => {
+    try {
+        const {username} = req.params;
+        const user = await User.findOne({username});
+
+        if(!user) return res.status(404).json({error: "User not found"});
+
+        const postCount = await Post.countDocuments({user: user._id});
+        
+        res.status(200).json({ postCount });
+        
+    } catch (error) {
+        console.log("Error in getUserPostCount controller", error.message);
+        return res.status(500).json({error: "Internal server error"});
+    }
+}
