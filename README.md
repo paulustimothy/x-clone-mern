@@ -6,13 +6,13 @@ A Twitter/X-like social media platform built with the MERN stack (MongoDB, Expre
 
 ## Features
 
-- User authentication (signup, login, logout)
-- Create, read, update, and delete posts
-- User profiles
-- Follow/unfollow users
-- Like and comment on posts
-- Real-time updates
-- Responsive design
+- 🔐 User authentication (signup, login, logout)
+- 📝 Posts Management (create, read, update, delete)
+- 👤 User profiles
+- 🤝 Follow/unfollow users
+- ❤️ Like and comment on posts
+- ⚡ Real-time updates
+- 📱 Responsive design
 
 ## Tech Stack
 
@@ -64,6 +64,11 @@ MONGO_URI=your_mongodb_connection_string
 JWT_SECRET=your_jwt_secret
 PORT=5000
 NODE_ENV=development
+
+# Cloudinary Configuration
+CLOUDINARY_CLOUD_NAME=your_clodinary_name
+CLOUDINARY_API_KEY=your_clodinary_key
+CLOUDINARY_API_SECRET=your_clodinary_secret
 ```
 
 ## Running the Application
